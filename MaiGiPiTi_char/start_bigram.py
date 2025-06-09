@@ -1,31 +1,39 @@
 import torch
 
-names = [name.replace('"', "").replace(',', "") for name in open("animales.txt", "r").read().splitlines()]
+names = [name.replace('"', "").replace(',', "").lower() for name in open("animales.txt", "r").read().splitlines()]
 
-
+## Get all the possible characheters
+# NB: tra i caratteri c'è anche lo spazio vuoto
 chars = sorted(list(set("".join(names))))
-stoi = {s:i+1 for i,s in enumerate(chars)}
+stoi = {s:i+1 for i,s in enumerate(chars)} # associo a ciascun carattere un numero
 stoi['.'] = 0
-
-itos = {i:s for s,i in stoi.items()}
+itos = {i:s for s,i in stoi.items()} # viceversa
 
 N = torch.zeros((len(chars)+1,len(chars)+1), dtype=torch.int32)
 
-for name in names[:5]:
+## Calcolo quante volte si presenta ogni coppia di lettere
+for name in names:
     chs = ['.'] + list(name) + ['.']
-    for ch1, ch2 in zip(chs, chs[1:]):
-        N[stoi[ch1],stoi[ch2]] += 1
+    for ch1, ch2 in zip(chs, chs[1:]): # creo le combinazioni tra lettere successive per ciascuna parola
+        N[stoi[ch1],stoi[ch2]] += 1 # ogni volta che ho una coppia di lettere la salvo
 
 
-print(N)
-
-
-
-
+# normalizzo ciascuna riga
+p = N.float() / N.float().sum(dim=1, keepdim=True)
 
 
 
+newnames = []
+idx = 0
+for seed in range(10):
+    name = "" 
+    gen = torch.Generator().manual_seed(seed)
+    while True: 
+        idx = torch.multinomial(p[idx], 1, replacement=True, generator=gen).item() # estraggo token successivo
+        name += itos[idx]
+        if idx == 0:
+            break
+    newnames.append(name)
+    
 
-
-
-
+print(newnames)
