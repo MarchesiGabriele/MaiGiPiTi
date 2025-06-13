@@ -18,7 +18,7 @@ for name in names:
         N[stoi[ch1],stoi[ch2]] += 1 # ogni volta che ho una coppia di lettere la salvo
 
 # normalizzo ciascuna riga
-p = N.float() / N.float().sum(dim=1, keepdim=True)
+p = (N+1).float() / N.float().sum(dim=1, keepdim=True)
 
 newnames = []
 idx = 0
@@ -34,20 +34,21 @@ for seed in range(10):
 print(newnames)
 
 
-##### COMPUTING LOG-LIKELIHOOOD
+##### COMPUTING LOG-LIKELIHOOOD ###########
 n = 0
 loglike = 0.0 
 for name in names[:3]:
     chs = ['.'] + list(name) + ['.']
     for ch1, ch2 in zip(chs, chs[1:]): # creo le combinazioni tra lettere successive per ciascuna parola
-        prob = p[stoi[ch1],stoi[ch2]]
+        prob = p[stoi[ch1],stoi[ch2]] # uso le prob. imparate precedentemente
         logprob = torch.log(prob)
         n += 1
         print(f"{ch1}, {ch2}, : {prob:.4f}, {logprob:.4f}")
         loglike += logprob
 
 # make it negative
-print(f"LOGLIKE: ", f"{-loglike}")
+print(f"NEGATIVE LOGLIKE: ", f"{-loglike}")
+print(f"AVERAGE LOGLIKE: ", f"{-loglike/n}")
 
 
 
